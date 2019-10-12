@@ -17,7 +17,11 @@
   (:export
    :az-storage-account
    :az-list-containers
-   :az-get-blob))
+   :az-get-blob
+   :az-put-blob
+   :az-append-block
+   :+block-blob-type+
+   :+append-blob-type+))
 (in-package :koazblob)
 
 (defstruct storage-account
@@ -210,5 +214,25 @@ https://docs.microsoft.com/en-us/rest/api/storageservices/put-blob"
                   :headers `(("x-ms-blob-type" . ,blob-type)
                              ("content-type" . ,content-type)
                              ("content-length" . ,(write-to-string content-length))))
+      (dex:put uri :headers headers
+                   :content content))))
+
+(defun az-append-block (account
+                        &key container path
+                          content)
+  "Append Block
+https://docs.microsoft.com/en-us/rest/api/storageservices/append-block"
+  (let* ((content
+           (typecase content
+             (string (trivial-utf-8:string-to-utf-8-bytes content))
+             (otherwise content)))
+         (content-length (length content)))
+    (az-blob-api (account
+                  :verb :put
+                  :query `(("comp" . "appendblock"))
+                  :container container
+                  :resource path
+                  :headers `(("content-length" . ,(write-to-string content-length))
+                             ("content-type" . nil)))
       (dex:put uri :headers headers
                    :content content))))

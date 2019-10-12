@@ -31,4 +31,17 @@ Call API.
                       :content-type "text/plain; charset=utf-8")
 ```
 
+```
+;; First. Empty append entry.
+(koazblob:az-put-blob ac
+                      :container "example"
+                      :path "/append.txt"
+                      :blob-type koazblob:+append-blob-type+)
+;; Append block.
+(koazblob:az-append-block ac
+                      :container "example"
+                      :path "/append.txt"
+                      :content "hello")
+```
+
 ## Installation
