@@ -43,6 +43,9 @@
               (cdr (assoc "AccountKey" info :test #'string=)))
      :endpoint (cdr (assoc "EndpointSuffix" info :test #'string=)))))
 
+(defconstant +block-blob-type+ "BlockBlob")
+(defconstant +append-blob-type+ "AppendBlob")
+
 (defconstant +newline+
   (make-array 1 :element-type '(unsigned-byte 8) :initial-element 10))
 
@@ -74,6 +77,13 @@
      (ironclad:update-mac mac (trivial-utf-8:string-to-utf-8-bytes
                                (string-upcase verb)))
      (ironclad:update-mac mac +newline+))))
+
+(defun update-std-header (mac headers key &key ignore-when)
+  (when-let (v (cdr (assoc key headers :test #'string=)))
+    (when (or (not ignore-when)
+              (string/= ignore-when v))
+      (ironclad:update-mac mac (trivial-utf-8:string-to-utf-8-bytes v))))
+  (ironclad:update-mac mac +newline+))
 
 (defun update-canonical-headers (mac headers)
   (loop for a in (sort (loop for a in headers
@@ -112,33 +122,21 @@
                       account container resource)
   (let ((mac (ironclad:make-mac :hmac secret :sha256)))
     (update-verb mac verb)
-    ;; Content-Encoding
-    (ironclad:update-mac mac +newline+)
-    ;; Content-Language
-    (ironclad:update-mac mac +newline+)
+    (update-std-header mac headers "content-encoding")
+    (update-std-header mac headers "content-language")
     ;; Content-Length (empty string when zero)
-    (ironclad:update-mac mac +newline+)
-    ;; Content-MD5
-    (ironclad:update-mac mac +newline+)
-    ;; Content-Type
-    (ironclad:update-mac mac +newline+)
-    ;; Date
-    (ironclad:update-mac mac +newline+)
-    ;; If-Modified-Since
-    (ironclad:update-mac mac +newline+)
-    ;; If-Match
-    (ironclad:update-mac mac +newline+)
-    ;; If-None-Match
-    (ironclad:update-mac mac +newline+)
-    ;; If-Unmodified-Since
-    (ironclad:update-mac mac +newline+)
-    ;; Range
-    (ironclad:update-mac mac +newline+)
-
+    (update-std-header mac headers "content-length" :ignore-when "0")
+    (update-std-header mac headers "content-md5")
+    (update-std-header mac headers "content-type")
+    (update-std-header mac headers "date")
+    (update-std-header mac headers "if-modified-since")
+    (update-std-header mac headers "if-match")
+    (update-std-header mac headers "if-none-match")
+    (update-std-header mac headers "if-unmodified-since")
+    (update-std-header mac headers "range")
     (update-canonical-headers mac headers)
     (update-canonical-resource mac account container resource)
     (update-canonical-params mac query)
-
     (concatenate
      'string
      "SharedKey " account ":"
@@ -147,24 +145,26 @@
 (defun format-rfc1123 (universal-time)
   (substitute #\space #\- (trivial-rfc-1123:as-rfc-1123 universal-time)))
 
-(defmacro az-blob-api ((account &key container resource verb query) &body body)
-  (once-only (account container resource verb query)
-    (with-unique-names (protocol endpoint ac-name secret headers sig)
+(defmacro az-blob-api ((account &key container resource verb headers query)
+                       &body body)
+  (once-only (account container resource verb headers query)
+    (with-unique-names (protocol endpoint ac-name secret hdrs sig)
       `(let ((,ac-name (storage-account-account ,account))
              (,protocol (storage-account-protocol ,account))
              (,endpoint (storage-account-endpoint ,account))
              (,secret (storage-account-secret ,account))
-             (,headers `(("x-ms-date" . ,(format-rfc1123 (get-universal-time)))
-                         ("x-ms-version" . "2019-02-02"))))
+             (,hdrs `(("x-ms-date" . ,(format-rfc1123 (get-universal-time)))
+                      ("x-ms-version" . "2019-02-02")
+                      ,@,headers)))
          (let* ((,sig (produce-sig
                        :account ,ac-name
                        :secret ,secret
                        :verb ,verb
-                       :headers ,headers
+                       :headers ,hdrs
                        :query ,query
                        :container ,container
                        :resource ,resource))
-                (headers (acons "Authorization" ,sig ,headers))
+                (headers (acons "Authorization" ,sig ,hdrs))
                 (uri (quri:make-uri
                       :scheme ,protocol
                       :host (concatenate 'string ,ac-name ".blob." ,endpoint)
@@ -190,3 +190,25 @@ https://docs.microsoft.com/en-us/rest/api/storageservices/get-blob"
                 :container container
                 :resource path)
     (dex:get uri :headers headers)))
+
+(defun az-put-blob (account
+                    &key container path
+                      (blob-type +block-blob-type+)
+                      content-type
+                      content)
+  "Put Blob
+https://docs.microsoft.com/en-us/rest/api/storageservices/put-blob"
+  (let* ((content
+           (typecase content
+             (string (trivial-utf-8:string-to-utf-8-bytes content))
+             (otherwise content)))
+         (content-length (length content)))
+    (az-blob-api (account
+                  :verb :put
+                  :container container
+                  :resource path
+                  :headers `(("x-ms-blob-type" . ,blob-type)
+                             ("content-type" . ,content-type)
+                             ("content-length" . ,(write-to-string content-length))))
+      (dex:put uri :headers headers
+                   :content content))))

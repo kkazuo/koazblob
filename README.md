@@ -23,4 +23,12 @@ Call API.
 (koazblob:az-get-blob ac :container "mycontainer" :path "/file/2019/10/log.txt")
 ```
 
+```
+(koazblob:az-put-blob ac
+                      :container "example"
+                      :path "/test.txt"
+                      :content "hello, world"
+                      :content-type "text/plain; charset=utf-8")
+```
+
 ## Installation
