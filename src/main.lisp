@@ -50,6 +50,9 @@
 (defconstant +block-blob-type+ "BlockBlob")
 (defconstant +append-blob-type+ "AppendBlob")
 
+(defconstant +empty+
+  (make-array 0 :element-type '(unsigned-byte 8)))
+
 (defconstant +newline+
   (make-array 1 :element-type '(unsigned-byte 8) :initial-element 10))
 
@@ -215,7 +218,9 @@ https://docs.microsoft.com/en-us/rest/api/storageservices/put-blob"
                              ("content-type" . ,content-type)
                              ("content-length" . ,(write-to-string content-length))))
       (dex:put uri :headers headers
-                   :content content))))
+                   :content (cond
+                              ((and content-type (not content)) +empty+)
+                              (t content))))))
 
 (defun az-append-block (account
                         &key container path
