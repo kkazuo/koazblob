@@ -142,6 +142,10 @@
 (defun format-rfc1123 (universal-time)
   (substitute #\space #\- (trivial-rfc-1123:as-rfc-1123 universal-time)))
 
+(defun merge-headers (base xs)
+  (alist-merge (alist-map-key base 'string-downcase)
+               xs))
+
 (defmacro az-blob-api ((account &key container resource verb headers query)
                        &body body)
   (once-only (account container resource verb headers query)
@@ -150,9 +154,10 @@
              (,protocol (storage-account-protocol ,account))
              (,endpoint (storage-account-endpoint ,account))
              (,secret (storage-account-secret ,account))
-             (,hdrs `(("x-ms-date" . ,(format-rfc1123 (get-universal-time)))
-                      ("x-ms-version" . "2019-02-02")
-                      ,@,headers)))
+             (,hdrs (alist-merge
+                     ,headers
+                     `(("x-ms-date" . ,(format-rfc1123 (get-universal-time)))
+                       ("x-ms-version" . "2019-02-02")))))
          (let* ((,sig (produce-sig
                        :account ,ac-name
                        :secret ,secret
@@ -171,63 +176,69 @@
                       :query ,query)))
            ,@body)))))
 
-(defun az-list-containers (account)
+(defun az-list-containers (account &key headers)
   "List Containers
 https://docs.microsoft.com/en-us/rest/api/storageservices/list-containers2"
   (az-blob-api (account
-                :verb :get :query `(("comp" . "list")))
+                :verb :get :query `(("comp" . "list"))
+                :headers (merge-headers headers '()))
     (let ((body (dex:get uri :headers headers :force-binary t)))
       (cxml:parse-octets body (cxml-xmls:make-xmls-builder)))))
 
-(defun az-get-blob (account &key container path)
+(defun az-get-blob (account &key container path headers)
   "Get Blob
 https://docs.microsoft.com/en-us/rest/api/storageservices/get-blob"
   (az-blob-api (account
                 :verb :get
                 :container container
-                :resource path)
+                :resource path
+                :headers (merge-headers headers '()))
     (dex:get uri :headers headers)))
 
 (defun az-put-blob (account
-                    &key container path
-                      (blob-type +block-blob-type+)
-                      content-type
-                      content)
+                    &key container path content headers
+                      (blob-type +block-blob-type+))
   "Put Blob
 https://docs.microsoft.com/en-us/rest/api/storageservices/put-blob"
   (let* ((content
            (typecase content
              (string (trivial-utf-8:string-to-utf-8-bytes content))
              (otherwise content)))
-         (content-length (length content)))
+         (content-length (length content))
+         (headers (merge-headers
+                   headers
+                   `(("x-ms-blob-type" . ,blob-type)
+                     ("content-length" . ,(write-to-string content-length)))))
+         (content-type-p (assoc "content-type" headers :test 'string=)))
     (az-blob-api (account
                   :verb :put
                   :container container
                   :resource path
-                  :headers `(("x-ms-blob-type" . ,blob-type)
-                             ("content-type" . ,content-type)
-                             ("content-length" . ,(write-to-string content-length))))
+                  :headers headers)
       (dex:put uri :headers headers
                    :content (cond
-                              ((and content-type (not content)) +empty+)
+                              ((and content-type-p (not content)) +empty+)
                               (t content))))))
 
 (defun az-append-block (account
-                        &key container path
-                          content)
+                        &key container path content headers)
   "Append Block
 https://docs.microsoft.com/en-us/rest/api/storageservices/append-block"
   (let* ((content
            (typecase content
              (string (trivial-utf-8:string-to-utf-8-bytes content))
              (otherwise content)))
-         (content-length (length content)))
+         (content-length (length content))
+         (headers (merge-headers
+                   headers
+                   `(("content-length" . ,(write-to-string content-length))
+                     ;; Don't output Content-Type header for request auth sign.
+                     ("content-type" . nil)))))
     (az-blob-api (account
                   :verb :put
                   :query `(("comp" . "appendblock"))
                   :container container
                   :resource path
-                  :headers `(("content-length" . ,(write-to-string content-length))
-                             ("content-type" . nil)))
+                  :headers headers)
       (dex:put uri :headers headers
                    :content content))))

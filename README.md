@@ -24,11 +24,12 @@ Call API.
 ```
 
 ```
+;; Put (create new, or replace exists).
 (koazblob:az-put-blob ac
                       :container "example"
                       :path "/test.txt"
                       :content "hello, world"
-                      :content-type "text/plain; charset=utf-8")
+                      :headers '(("content-type" . "text/plain; charset=utf-8")))
 ```
 
 ```
@@ -36,6 +37,7 @@ Call API.
 (koazblob:az-put-blob ac
                       :container "example"
                       :path "/append.txt"
+                      :headers '(("content-type" . "text/plain"))
                       :blob-type koazblob:+append-blob-type+)
 ;; Append block.
 (koazblob:az-append-block ac
