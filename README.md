@@ -13,15 +13,19 @@ Setup account.
 (setq ac (koazblob:az-storage-account "DefaultEndpointsProtocol=https;AccountName=...;...=core.windows.net"))
 ```
 
-Call API.
+Setup Blob service context.
 
 ```
 (koazblob:az-list-containers ac)
 ```
 
+Get Blob contents.
+
 ```
 (koazblob:az-get-blob ac :container "mycontainer" :path "/file/2019/10/log.txt")
 ```
+
+Operation on Block Blob.
 
 ```
 ;; Put (create new, or replace exists).
@@ -31,6 +35,8 @@ Call API.
                       :content "hello, world"
                       :headers '(("content-type" . "text/plain; charset=utf-8")))
 ```
+
+Operation on Append Blob.
 
 ```
 ;; First. Empty append entry.
