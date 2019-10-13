@@ -2,7 +2,7 @@
 
 ## Status
 
-Not ready.
+Very basic functionality.
 
 ## Usage
 
