@@ -12,7 +12,9 @@
                #:trivial-utf-8)
   :components ((:module "src"
                 :components
-                ((:file "main"))))
+                ((:file "package")
+                 (:file "alist")
+                 (:file "main"))))
   :description "Microsoft Azure Blob Storage API"
   :in-order-to ((test-op (test-op "koazblob/tests"))))
 

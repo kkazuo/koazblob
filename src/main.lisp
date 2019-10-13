@@ -12,16 +12,6 @@
 ;;;; ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 ;;;; OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-(defpackage koazblob
-  (:use :cl :alexandria)
-  (:export
-   :az-storage-account
-   :az-list-containers
-   :az-get-blob
-   :az-put-blob
-   :az-append-block
-   :+block-blob-type+
-   :+append-blob-type+))
 (in-package :koazblob)
 
 (defstruct storage-account
