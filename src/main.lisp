@@ -205,6 +205,16 @@ https://docs.microsoft.com/en-us/rest/api/storageservices/get-blob-properties"
                 :headers (merge-headers headers '()))
     (dex:head uri :headers headers)))
 
+(defun az-delete-blob (account &key container path headers)
+  "Delete Blob
+https://docs.microsoft.com/en-us/rest/api/storageservices/delete-blob"
+  (az-blob-api (account
+                :verb :delete
+                :container container
+                :resource path
+                :headers (merge-headers headers '()))
+    (dex:delete uri :headers headers)))
+
 (defun az-put-blob (account
                     &key container path content headers
                       (blob-type +az-blob-type-block+))

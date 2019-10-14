@@ -21,5 +21,6 @@
    :az-get-blob-props
    :az-put-blob
    :az-append-block
+   :az-delete-blob
    :+az-blob-type-block+
    :+az-blob-type-append+))
