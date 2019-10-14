@@ -4,6 +4,9 @@
 
 Very basic functionality.
 
+You may also read Blob REST API.
+https://docs.microsoft.com/en-us/rest/api/storageservices/blob-service-rest-api
+
 ## Usage
 
 Setup Blob service context.
