@@ -31,11 +31,11 @@
   "Instanciate new Storage Account from connection-string"
   (let ((info (parse-connection-string connection-string)))
     (make-storage-account
-     :protocol (cdr (assoc "DefaultEndpointsProtocol" info :test #'string=))
-     :account (cdr (assoc "AccountName" info :test #'string=))
+     :protocol (cdr (assoc "DefaultEndpointsProtocol" info :test 'equal))
+     :account (cdr (assoc "AccountName" info :test 'equal))
      :secret (cl-base64:base64-string-to-usb8-array
-              (cdr (assoc "AccountKey" info :test #'string=)))
-     :endpoint (cdr (assoc "EndpointSuffix" info :test #'string=)))))
+              (cdr (assoc "AccountKey" info :test 'equal)))
+     :endpoint (cdr (assoc "EndpointSuffix" info :test 'equal)))))
 
 (defconstant +az-blob-type-block+ "BlockBlob")
 (defconstant +az-blob-type-append+ "AppendBlob")
@@ -76,7 +76,7 @@
      (ironclad:update-mac mac +newline+))))
 
 (defun update-std-header (mac headers key &key ignore-when)
-  (when-let (v (cdr (assoc key headers :test #'string=)))
+  (when-let (v (cdr (assoc key headers :test 'equal)))
     (when (or (not ignore-when)
               (string/= ignore-when v))
       (ironclad:update-mac mac (trivial-utf-8:string-to-utf-8-bytes v))))
@@ -239,7 +239,7 @@ https://docs.microsoft.com/en-us/rest/api/storageservices/put-blob"
                    headers
                    `(("x-ms-blob-type" . ,blob-type)
                      ("content-length" . ,(write-to-string content-length)))))
-         (content-type-p (assoc "content-type" headers :test 'string=)))
+         (content-type-p (assoc "content-type" headers :test 'equal)))
     (az-blob-api (account
                   :verb :put
                   :container container
