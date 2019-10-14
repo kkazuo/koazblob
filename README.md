@@ -6,23 +6,41 @@ Very basic functionality.
 
 ## Usage
 
-Setup account.
+Setup Blob service context.
 
 ```
 ;; pass connection string as is.
 (setq ac (koazblob:az-storage-account "DefaultEndpointsProtocol=https;AccountName=...;...=core.windows.net"))
 ```
 
-Setup Blob service context.
+List containers.
 
 ```
 (koazblob:az-list-containers ac)
+```
+
+Create container.
+
+```
+(koazblob:az-create-container ac :container "example")
+```
+
+Delete container.
+
+```
+(koazblob:az-delete-container ac :container "example")
 ```
 
 Get Blob contents.
 
 ```
 (koazblob:az-get-blob ac :container "mycontainer" :path "/file/2019/10/log.txt")
+```
+
+Get Blob properties.
+
+```
+(koazblob:az-get-blob-props ac :container "mycontainer" :path "/file/2019/10/log.txt")
 ```
 
 Operation on Block Blob.
@@ -50,6 +68,12 @@ Operation on Append Blob.
                       :container "example"
                       :path "/append.txt"
                       :content "hello")
+```
+
+Delete Blob.
+
+```
+(koazblob:az-delete-blob ac :container "mycontainer" :path "/file/2019/10/log.txt")
 ```
 
 ## Installation
