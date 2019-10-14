@@ -170,9 +170,7 @@
                 (uri (quri:make-uri
                       :scheme ,protocol
                       :host (concatenate 'string ,ac-name ".blob." ,endpoint)
-                      :path (if ,resource
-                                (concatenate 'string "/" ,container ,resource)
-                                "/")
+                      :path (concatenate 'string "/" ,container ,resource)
                       :query ,query)))
            ,@body)))))
 
@@ -184,6 +182,24 @@ https://docs.microsoft.com/en-us/rest/api/storageservices/list-containers2"
                 :headers (merge-headers headers '()))
     (let ((body (dex:get uri :headers headers :force-binary t)))
       (cxml:parse-octets body (cxml-xmls:make-xmls-builder)))))
+
+(defun az-create-container (account &key container headers)
+  "Create Container
+https://docs.microsoft.com/en-us/rest/api/storageservices/create-container"
+  (az-blob-api (account
+                :verb :put :query `(("restype" . "container"))
+                :container container
+                :headers (merge-headers headers '()))
+    (dex:put uri :headers headers :verbose t)))
+
+(defun az-delete-container (account &key container headers)
+  "Delete Container
+https://docs.microsoft.com/en-us/rest/api/storageservices/delete-container"
+  (az-blob-api (account
+                :verb :delete :query `(("restype" . "container"))
+                :container container
+                :headers (merge-headers headers '()))
+    (dex:delete uri :headers headers)))
 
 (defun az-get-blob (account &key container path headers)
   "Get Blob
