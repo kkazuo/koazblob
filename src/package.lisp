@@ -18,7 +18,8 @@
    :az-storage-account
    :az-list-containers
    :az-get-blob
+   :az-get-blob-props
    :az-put-blob
    :az-append-block
-   :+block-blob-type+
-   :+append-blob-type+))
+   :+az-blob-type-block+
+   :+az-blob-type-append+))

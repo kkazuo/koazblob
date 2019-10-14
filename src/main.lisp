@@ -37,8 +37,8 @@
               (cdr (assoc "AccountKey" info :test #'string=)))
      :endpoint (cdr (assoc "EndpointSuffix" info :test #'string=)))))
 
-(defconstant +block-blob-type+ "BlockBlob")
-(defconstant +append-blob-type+ "AppendBlob")
+(defconstant +az-blob-type-block+ "BlockBlob")
+(defconstant +az-blob-type-append+ "AppendBlob")
 
 (defconstant +empty+
   (make-array 0 :element-type '(unsigned-byte 8)))
@@ -195,9 +195,19 @@ https://docs.microsoft.com/en-us/rest/api/storageservices/get-blob"
                 :headers (merge-headers headers '()))
     (dex:get uri :headers headers)))
 
+(defun az-get-blob-props (account &key container path headers)
+  "Get Blob Properties
+https://docs.microsoft.com/en-us/rest/api/storageservices/get-blob-properties"
+  (az-blob-api (account
+                :verb :head
+                :container container
+                :resource path
+                :headers (merge-headers headers '()))
+    (dex:head uri :headers headers)))
+
 (defun az-put-blob (account
                     &key container path content headers
-                      (blob-type +block-blob-type+))
+                      (blob-type +az-blob-type-block+))
   "Put Blob
 https://docs.microsoft.com/en-us/rest/api/storageservices/put-blob"
   (let* ((content

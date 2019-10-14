@@ -44,7 +44,7 @@ Operation on Append Blob.
                       :container "example"
                       :path "/append.txt"
                       :headers '(("content-type" . "text/plain"))
-                      :blob-type koazblob:+append-blob-type+)
+                      :blob-type koazblob:+az-blob-type-append+)
 ;; Append block.
 (koazblob:az-append-block ac
                       :container "example"
