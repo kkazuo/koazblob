@@ -190,7 +190,7 @@ https://docs.microsoft.com/en-us/rest/api/storageservices/create-container"
                 :verb :put :query `(("restype" . "container"))
                 :container container
                 :headers (merge-headers headers '()))
-    (dex:put uri :headers headers :verbose t)))
+    (dex:put uri :headers headers)))
 
 (defun az-delete-container (account &key container headers)
   "Delete Container
