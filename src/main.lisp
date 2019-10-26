@@ -251,7 +251,14 @@ https://docs.microsoft.com/en-us/rest/api/storageservices/get-blob-properties"
                 :container container
                 :resource path
                 :headers (merge-headers headers '()))
-    (dex:head uri :headers headers)))
+    (multiple-value-bind (body status headers uri s)
+        (dex:head uri :headers headers)
+      (declare (ignore body))
+      (values (when (eql 200 status)
+                (loop for key being the hash-keys of headers
+                        using (hash-value value)
+                      nconc (list (make-keyword (string-upcase key)) value)))
+              status headers uri s))))
 
 (defun header-of-delete-snapshots (v)
   (acons "x-ms-delete-snapshots"
