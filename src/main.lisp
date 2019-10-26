@@ -196,6 +196,25 @@ https://docs.microsoft.com/en-us/rest/api/storageservices/list-containers2"
                   body)
               status headers uri s))))
 
+(defun az-list-blobs (account &key container headers query
+                                (prefix ""))
+  "List Blobs
+https://docs.microsoft.com/en-us/rest/api/storageservices/list-blobs"
+  (az-blob-api (account
+                :verb :get
+                :query (merge-headers query
+                                      `(("restype" . "container")
+                                        ("comp" . "list")
+                                        ("prefix" . ,prefix)))
+                :container container
+                :headers (merge-headers headers '()))
+    (multiple-value-bind (body status headers uri s)
+        (dex:get uri :headers headers :force-binary t :want-stream t)
+      (values (if (eql 200 status)
+                  (cxml:parse body (cxml-xmls:make-xmls-builder))
+                  body)
+              status headers uri s))))
+
 (defun az-create-container (account &key container headers)
   "Create Container
 https://docs.microsoft.com/en-us/rest/api/storageservices/create-container"
