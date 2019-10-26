@@ -1,5 +1,7 @@
 # KoAzBlob
 
+Azure Blob Storage API.
+
 ## Status
 
 Very basic functionality.
