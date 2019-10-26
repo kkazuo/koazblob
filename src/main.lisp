@@ -189,8 +189,12 @@ https://docs.microsoft.com/en-us/rest/api/storageservices/list-containers2"
   (az-blob-api (account
                 :verb :get :query `(("comp" . "list"))
                 :headers (merge-headers headers '()))
-    (let ((body (dex:get uri :headers headers :force-binary t :want-stream t)))
-      (cxml:parse body (cxml-xmls:make-xmls-builder)))))
+    (multiple-value-bind (body status headers uri s)
+        (dex:get uri :headers headers :force-binary t :want-stream t)
+      (values (if (eql 200 status)
+                  (cxml:parse body (cxml-xmls:make-xmls-builder))
+                  body)
+              status headers uri s))))
 
 (defun az-create-container (account &key container headers)
   "Create Container
