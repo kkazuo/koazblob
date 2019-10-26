@@ -17,6 +17,7 @@
   (:export
    :az-storage-account
    :az-list-containers
+   :az-list-blobs
    :az-create-container
    :az-delete-container
    :az-get-blob
