@@ -37,32 +37,40 @@
               (cdr (assoc "AccountKey" info :test 'equal)))
      :endpoint (cdr (assoc "EndpointSuffix" info :test 'equal)))))
 
-(defconstant +az-blob-type-block+ "BlockBlob")
-(defconstant +az-blob-type-append+ "AppendBlob")
+(define-constant +az-blob-type-block+ "BlockBlob" :test 'string-equal)
+(define-constant +az-blob-type-append+ "AppendBlob" :test 'string-equal)
 
-(defconstant +empty+
-  (make-array 0 :element-type '(unsigned-byte 8)))
+(define-constant +empty+
+    (make-array 0 :element-type '(unsigned-byte 8))
+  :test 'equalp)
 
-(defconstant +newline+
-  (make-array 1 :element-type '(unsigned-byte 8) :initial-element 10))
+(define-constant +newline+
+    (make-array 1 :element-type '(unsigned-byte 8) :initial-element 10)
+  :test 'equalp)
 
-(defconstant +slash+
-  (make-array 1 :element-type '(unsigned-byte 8) :initial-element 47))
+(define-constant +slash+
+    (make-array 1 :element-type '(unsigned-byte 8) :initial-element 47)
+  :test 'equalp)
 
-(defconstant +colon+
-  (make-array 1 :element-type '(unsigned-byte 8) :initial-element 58))
+(define-constant +colon+
+    (make-array 1 :element-type '(unsigned-byte 8) :initial-element 58)
+  :test 'equalp)
 
-(defconstant +verb-get+
-  (make-array 4 :element-type '(unsigned-byte 8) :initial-contents #(71 69 84 10)))
+(define-constant +verb-get+
+    (make-array 4 :element-type '(unsigned-byte 8) :initial-contents #(71 69 84 10))
+  :test 'equalp)
 
-(defconstant +verb-post+
-  (make-array 5 :element-type '(unsigned-byte 8) :initial-contents #(80 79 83 84 10)))
+(define-constant +verb-post+
+    (make-array 5 :element-type '(unsigned-byte 8) :initial-contents #(80 79 83 84 10))
+  :test 'equalp)
 
-(defconstant +verb-put+
-  (make-array 4 :element-type '(unsigned-byte 8) :initial-contents #(80 85 84 10)))
+(define-constant +verb-put+
+    (make-array 4 :element-type '(unsigned-byte 8) :initial-contents #(80 85 84 10))
+  :test 'equalp)
 
-(defconstant +verb-delete+
-  (make-array 7 :element-type '(unsigned-byte 8) :initial-contents #(68 69 76 69 84 69 10)))
+(define-constant +verb-delete+
+    (make-array 7 :element-type '(unsigned-byte 8) :initial-contents #(68 69 76 69 84 69 10))
+  :test 'equalp)
 
 (defun update-verb (mac verb)
   (case verb
