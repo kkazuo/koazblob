@@ -22,6 +22,12 @@ List containers.
 (koazblob:az-list-containers ac)
 ```
 
+List blobs.
+
+```
+(koazblob:az-list-blobs ac :container "example")
+```
+
 Create container.
 
 ```
