@@ -107,7 +107,8 @@
   (ironclad:update-mac mac +slash+)
   (ironclad:update-mac mac (trivial-utf-8:string-to-utf-8-bytes account))
   (ironclad:update-mac mac +slash+)
-  (ironclad:update-mac mac (trivial-utf-8:string-to-utf-8-bytes container))
+  (when container
+    (ironclad:update-mac mac (trivial-utf-8:string-to-utf-8-bytes container)))
   (when resource
     (ironclad:update-mac mac (trivial-utf-8:string-to-utf-8-bytes resource))))
 
@@ -188,8 +189,8 @@ https://docs.microsoft.com/en-us/rest/api/storageservices/list-containers2"
   (az-blob-api (account
                 :verb :get :query `(("comp" . "list"))
                 :headers (merge-headers headers '()))
-    (let ((body (dex:get uri :headers headers :force-binary t)))
-      (cxml:parse-octets body (cxml-xmls:make-xmls-builder)))))
+    (let ((body (dex:get uri :headers headers :force-binary t :want-stream t)))
+      (cxml:parse body (cxml-xmls:make-xmls-builder)))))
 
 (defun az-create-container (account &key container headers)
   "Create Container
