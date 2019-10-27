@@ -155,6 +155,11 @@
   (alist-merge (alist-map-key base 'string-downcase)
                xs))
 
+(defun ht->plist (h)
+  (loop for key being the hash-keys of h
+          using (hash-value value)
+        nconc (list (make-keyword (string-upcase key)) value)))
+
 (defmacro az-blob-api ((account &key container resource verb headers query)
                        &body body)
   (once-only (account container resource verb headers query)
@@ -194,6 +199,21 @@ https://docs.microsoft.com/en-us/rest/api/storageservices/list-containers2"
       (values (if (eql 200 status)
                   (cxml:parse body (cxml-xmls:make-xmls-builder))
                   body)
+              status headers uri s))))
+
+(defun az-get-container-props (account &key container headers)
+  "Get Container Properties
+https://docs.microsoft.com/en-us/rest/api/storageservices/get-container-properties"
+  (az-blob-api (account
+                :verb :head
+                :query `(("restype" . "container"))
+                :container container
+                :headers (merge-headers headers '()))
+    (multiple-value-bind (body status headers uri s)
+        (dex:head uri :headers headers)
+      (declare (ignore body))
+      (values (when (eql 200 status)
+                (ht->plist headers))
               status headers uri s))))
 
 (defun az-list-blobs (account &key container headers query
@@ -255,9 +275,7 @@ https://docs.microsoft.com/en-us/rest/api/storageservices/get-blob-properties"
         (dex:head uri :headers headers)
       (declare (ignore body))
       (values (when (eql 200 status)
-                (loop for key being the hash-keys of headers
-                        using (hash-value value)
-                      nconc (list (make-keyword (string-upcase key)) value)))
+                (ht->plist headers))
               status headers uri s))))
 
 (defun header-of-delete-snapshots (v)
